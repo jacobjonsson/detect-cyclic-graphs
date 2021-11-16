@@ -5,6 +5,8 @@ export type NodeOrEdge = Node | Edge;
 type Visited = Record<string, boolean>;
 type RecStack = Record<string, boolean>;
 
+// TODO: Implement same data transformation as in the go-version
+
 export function isCyclic(nodes: Node[], edges: Edge[]): boolean {
   let visited: Visited = nodes.reduce(
     (acc, node) => ({ ...acc, [node.id]: false }),
