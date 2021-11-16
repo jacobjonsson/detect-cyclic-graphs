@@ -9,20 +9,41 @@ type Edge struct {
 	Target string `json:"target"`
 }
 
-type Visited map[string]bool
-type RecStack map[string]bool
+// For fast lookup children will point to the index of the node in the array
+type NodeWithChildren struct {
+	Node
+	Children []int
+}
 
-func IsCyclic(nodes []Node, edges []Edge) bool {
+type Visited map[int]bool
+type RecStack map[int]bool
+
+func IsCyclic(iNodes []Node, iEdges []Edge) bool {
+	nodes := make([]NodeWithChildren, len(iNodes))
+
+	// Complexity of this is O(n^3)..?
+	for idx, iNode := range iNodes {
+		node := NodeWithChildren{Node: iNode}
+
+		for _, edge := range iEdges {
+			if edge.Source == node.Id {
+				node.Children = append(node.Children, getIndexForNodeWithId(edge.Target, iNodes))
+			}
+		}
+
+		nodes[idx] = node
+	}
+
 	visited := make(Visited)
 	recStack := make(RecStack)
 
-	for _, node := range nodes {
-		visited[node.Id] = false
-		recStack[node.Id] = false
+	for i := range nodes {
+		visited[i] = false
+		recStack[i] = false
 	}
 
-	for _, node := range nodes {
-		if isCyclicUtil(node, visited, recStack, nodes, edges) {
+	for i := range nodes {
+		if isCyclicUtil(i, visited, recStack, nodes) {
 			return true
 		}
 	}
@@ -30,49 +51,36 @@ func IsCyclic(nodes []Node, edges []Edge) bool {
 	return false
 }
 
-func isCyclicUtil(node Node, visited Visited, recStack RecStack, nodes []Node, edges []Edge) bool {
-	if recStack[node.Id] {
+func getIndexForNodeWithId(id string, nodes []Node) int {
+	for idx, node := range nodes {
+		if node.Id == id {
+			return idx
+		}
+	}
+
+	return -1
+}
+
+func isCyclicUtil(idx int, visited Visited, recStack RecStack, nodes []NodeWithChildren) bool {
+	if recStack[idx] {
 		return true
 	}
 
-	if visited[node.Id] {
+	if visited[idx] {
 		return false
 	}
 
-	visited[node.Id] = true
-	recStack[node.Id] = true
+	visited[idx] = true
+	recStack[idx] = true
 
-	children := getChildren(node, nodes, edges)
+	children := nodes[idx].Children
 
 	for _, child := range children {
-		if isCyclicUtil(child, visited, recStack, nodes, edges) {
+		if isCyclicUtil(child, visited, recStack, nodes) {
 			return true
 		}
 	}
 
-	recStack[node.Id] = false
+	recStack[idx] = false
 	return false
-}
-
-func getChildren(node Node, nodes []Node, edges []Edge) []Node {
-	children := make([]Node, 0)
-	for _, edge := range edges {
-		if edge.Source == node.Id {
-			child := getNode(edge.Target, nodes)
-			if child != nil {
-				children = append(children, *child)
-			}
-		}
-	}
-	return children
-}
-
-func getNode(id string, nodes []Node) *Node {
-	for _, node := range nodes {
-		if node.Id == id {
-			return &node
-		}
-	}
-
-	return nil
 }
