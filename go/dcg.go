@@ -21,7 +21,7 @@ type RecStack map[int]bool
 func IsCyclic(iNodes []Node, iEdges []Edge) bool {
 	nodes := make([]NodeWithChildren, len(iNodes))
 
-	// Complexity of this is O(n^3)..?
+	// Complexity for this is O(n^3)..?
 	for idx, iNode := range iNodes {
 		node := NodeWithChildren{Node: iNode}
 
