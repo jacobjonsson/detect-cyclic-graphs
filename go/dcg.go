@@ -58,7 +58,7 @@ func getIndexForNodeWithId(id string, nodes []Node) int {
 		}
 	}
 
-	return -1
+	panic("Node with id " + id + " not found")
 }
 
 func isCyclicUtil(idx int, visited Visited, recStack RecStack, nodes []NodeWithChildren) bool {
